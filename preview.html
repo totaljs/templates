@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Template renderer</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=11" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<meta name="robots" content="all,follow" />
+	<link href="https://cdn.componentator.com/spa.min@19.css" rel="stylesheet" type="text/css" />
+	<script src="https://cdn.componentator.com/spa.min@19.js"></script>
+	<style>
+		html, body { height: 100%; border: 0; overflow:hidden; }
+	</style>
+</head>
+<body data---="exec">
+
+	<div data---="LAZY filereader"></div>
+
+	<div style="display:flex;width:100%;height:100%;justify-content:center;align-items:center">
+		<div><button class="exec" data-exec="common/open" style="font-size:14px;background:#F0F0F0;border:1px solid #E0E0E0;padding:15px 20px;border-radius:var(--radius);"><i class="ti ti-invoice" style="margin-right:8px"></i>Render template</button></div>
+	</div>
+
+	<script>
+		PLUGIN('common', function(exports) {
+			exports.open = function() {
+				var opt = {};
+				opt.accept = 'text/html';
+				opt.callback = function(file) {
+
+					var body = file.body;
+					var helpers = {};
+					var strhelpers = '';
+					var model = EMPTYOBJECT;
+					var beg = body.indexOf('<scr' + 'ipt>');
+					var end;
+
+					// helpers
+					if (beg !== -1) {
+						end = body.indexOf('</scr' + 'ipt>', beg + 8);
+						strhelpers = body.substring(beg + 8, end).trim();
+						body = body.substring(0, beg) + body.substring(end + 9);
+					}
+
+					// model
+					beg = body.indexOf('<scr' + 'ipt type="text/json">');
+					if (beg !== -1) {
+						end = body.indexOf('</scr' + 'ipt>', beg + 8);
+						model = PARSE(body.substring(beg + 25, end).trim());
+						body = body.substring(0, beg) + body.substring(end + 9);
+					}
+
+					if (strhelpers)
+						new Function('Thelpers', strhelpers)(helpers);
+
+					var output = Tangular.render(body, { value: model }, null, helpers);
+					var d = W.open();
+					d.document.write(output);
+				};
+
+				SETTER('filereader/open', opt);
+			};
+		});
+	</script>
+
+</body>
+</html>
