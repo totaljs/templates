@@ -2,10 +2,188 @@
 <html>
 <head>
 	<meta charset="utf-8" />
+	<style>
+		body { font-family: Arial, Helvetica, sans-serif; font-size: 15px; }
+		.page { width: 21cm; height: 29.7cm; background: white; display: block; margin: 10px auto; padding: 0.5cm; box-sizing: border-box; position: relative; }
+		@media print {
+			.page { width: auto; height: auto; }
+			body, .page { margin: 0; box-shadow: 0; background-color: white; font-family: Arial, Helvetica, sans-serif; font-size: 15px; }
+		}
+		.np { padding: 0; }
+		table { width: 100%; border-collapse: collapse; }
+		table td { vertical-align: top; padding: 0; margin: 0; }
+		.products td, .products th { border: 1px solid black; padding: 2px 5px; }
+		.products th { background-color: #F8F8F8; padding: 5px 5px; }
+	</style>
 </head>
 <body>
+	<div class="page">
 
-	<h1>{{ value.name | uppercase }}</h1>
+		{{ value | init }}
+
+		<div style="padding:0 0 10px;border-bottom:1px solid black;margin-bottom:20px">
+			Invoice No. <b>{{ value.number }}</b>
+		</div>
+		<table cellpadding="0" cellspacing="0">
+			<tr>
+				<td style="width:50%">
+					<div style="padding:15px 0">
+						{{ if value.url }}
+							<div style="margin-bottom:10px"><img src="{{ value.url }}" width="40" /></div>
+						{{ fi }}
+						<div>
+							<b>{{ value.supplier.name }}</b><br>
+							<div>Company ID: {{ value.supplier.companyid }}</div>
+							<div>VAT number: {{ value.supplier.companyvat }}</div><br>
+							{{ value.supplier.address.street }}<br>
+							{{ value.supplier.address.ZIP }} {{ value.supplier.address.city }}<br>
+							{{ value.supplier.address.state }}<br><br>
+
+							<div style="border:1px solid black;padding:15px;margin-right:20px">
+								Bank: {{ value.bank.name }}<br>
+								IBAN / SWIFT: {{ value.bank.iban }} / {{ value.bank.swift }}<br>
+								Payment reference: {{ value.bank.vs }}
+							</div>
+						</div>
+					</div>
+				</td>
+				<td style="width:50%;background-color:#F8F8F8">
+					<div style="padding:15px 0 15px 20px">
+						<div style="margin:10px 0 5px;color:gray;font-size:10px">Customer:</div>
+						<b>{{ value.customer.name }}</b><br />
+						{{ if value.customer.companyid }}
+							<div>Company ID: {{ value.customer.companyid }}</div>
+						{{ fi }}
+						{{ if value.customer.companyvat }}
+							<div>VAT number: {{ value.customer.companyvat }}</div><br />
+						{{ fi }}
+						
+						<div>{{ value.customer.address.address }}<br>
+							{{ value.customer.address.zip }} {{ value.customer.address.city }}<br />{{ value.customer.address.state }}
+						</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<br />
+		<br />
+		<table style="border-top:1px solid black;border-bottom:1px solid black" cellpadding="0" cellspacing="0">
+			<td style="width:25%;text-align:center;border-left:1px solid black">
+				<div style="padding:10px 0">
+					<b>Payment type:</b><br>
+					{{ value.payment }}
+				</div>
+			</td>
+			<td style="width:25%;text-align:center;border-left:1px solid black">
+				<div style="padding:10px 0">
+					<b>Created date:</b><br>
+					{{ value.dtcreated }}
+				</div>
+			</td>
+			<td style="width:25%;text-align:center;border-left:1px solid black">
+				<div style="padding:10px 0">
+					<b>Shipping date</b><br>
+					{{ if value.dtpaid }}{{ value.dtpaid }}{{ else }}---{{ fi }}
+				</div>
+			</td>
+			<td style="width:25%;text-align:center;border-left:1px solid black;border-right:1px solid black">
+				<div style="padding:10px 0">
+					<b>Due date</b><br>
+					{{ value.dtdue }}
+				</div>
+			</td>
+		</table>
+		<br />
+		{{ if !value.vat }}Supply of goods is exempt. Supply of services - VAT reverse charge.<br />{{ fi }}
+		<br />
+		<table class="products" cellpadding="0" cellspacing="0">
+			<thead>
+				<tr>
+					<th>Item</th>
+					<th class="short center">Quantity</th>
+					<th class="short center">Unit</th>
+					<th class="short right">Price</th>
+					<th class="short right">VAT</th>
+					<th class="short center">With VAT</th>
+					<th class="short right">Total</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{ foreach m in value.items }}
+					<tr>
+						<td>{{ m.name }}</td>
+						<td style="width:60px;text-align:center">{{ m.quantity }}</td>
+						<td style="width:60px;text-align:center">{{ m.unit }}</td>
+						<td style="width:80px;text-align:right">{{ m.price | price(value.currency) }}</td>
+						<td style="width:60px;text-align:center">
+							{{ if m.vat >= 0 }}
+								{{ m.vat }}%
+							{{ else }}
+								{{ value.vat }}%
+							{{ fi }}
+						</td>
+						<td style="width:80;text-align:right">{{ m.withvat | price(value.currency) }}</td>
+						<td style="width:80px;text-align:right">{{ m.total | price(value.currency) }}</td>
+					</tr>
+				{{ end }}
+			</tbody>
+		</table>
+
+		<table style="margin:15px 0">
+			<thead>
+				<tr>
+					<th style="width:50%"></th>
+					<th style="text-align:right">VAT base</th>
+					<th style="text-align:right">VAT amount</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td></td>
+					<td style="text-align:right">{{ value.vatbase | price(value.currency) }}</td>
+					<td style="text-align:right">{{ value.vatamount | price(value.currency) }}</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<table>
+			{{ if value.discount }}
+			<tr>
+				<td style="width:50%;border-right:1px solid black"></td>
+				<td style="border-top:1px solid black">
+					<div style="padding:2px 5px">Price before discount</div>
+				</td>
+				<td style="text-align:right;border-right:1px solid black;border-top:1px solid black">
+					<div style="padding:2px 5px;font-weight:bold">{{ value.price | price(value.currency) }}</div>
+				</td>
+			</tr>
+			<tr>
+				<td style="width:50%;border-right:1px solid black"></td>
+				<td style="border-top:1px solid black">
+					<div style="padding:2px 5px">Discount {{ value.discount }}%</div>
+				</td>
+				<td style="text-align:right;border-right:1px solid black;border-top:1px solid black">
+					<div style="padding:2px 5px;font-weight:bold">{{ value.discountamount | price(value.currency) }}</div>
+				</td>
+			</tr>
+			{{ fi }}
+			<tr>
+				<td style="width:50%;border-right:1px solid black;"></td>
+				<td style="border-top:1px solid black;background-color:#F8F8F8;border-bottom:1px solid black;padding-top:3px;padding-bottom:3px">
+					<div style="padding:2px 5px"><b>Invoice total</b></div>
+				</td>
+				<td style="text-align:right;border-right:1px solid black;border-top:1px solid black;background-color:#F8F8F8;border-bottom:1px solid black;padding-top:3px;padding-bottom:3px">
+					<div style="padding:2px 5px;font-weight:bold">
+						{{ if value.discount }}
+							{{ value.discountprice | price(value.currency) }}
+						{{ else }}
+							{{ value.price | price(value.currency) }}
+						{{ fi }}
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
 
 	<script>
 
@@ -13,11 +191,87 @@
 			return val.toUpperCase();
 		};
 
+		Thelpers.price = function(val, currency) {
+			return val.format(2) + ' ' + currency;
+		};
+
+		Thelpers.init = function(value) {
+			value.vatbase = 0;
+			value.price = 0;
+			value.items.forEach(function(item) {
+				item.withvat = item.price + ((item.price / 100) * (item.vat >= 0 ? item.vat : value.vat));
+				item.total = item.withvat * item.quantity;
+				value.vatbase = value.vatbase + (item.price * item.quantity);
+				value.price = value.price + item.total;
+			})
+
+			value.vatamount = value.price - value.vatbase;
+			
+			if (value.discount) {
+				value.discountamount = value.price * (value.discount / 100);
+				value.discountprice = value.price - value.discountamount;
+			}
+
+			return '';
+		};
+
+
 	</script>
 
 	<script type="text/json">
 		{
-			"name": "Test model"
+			"id": "someid",
+			"number": 4,
+			"vs": 3,
+			"url": "https://img.stackshare.io/service/6884/P5niXmXA_400x400.png",
+			"supplier": {
+				"name": "Parkio",
+				"companyid": 12345,
+				"companyvat": "SKsomething",
+				"address": {
+					"street": "Kapitulská 3",
+					"zip": 96681,
+					"city": "Banská Bystrica",
+					"state": "Slovakia"
+				}
+			},
+			"bank": {
+				"name": "Tatra Banka",
+				"swift": "TATRSKBX",
+				"iban": "SK4567898456",
+				"vs": 157
+			},
+			"customer": {
+				"name": "Total Avengers s.r.o.",
+				"companyid": 12345,
+				"companyvat": "SKelse",
+				"address": {
+					"address": "Kapitulská 3",
+					"zip": 96681,
+					"city": "Banská Bystrica",
+					"state": "Slovakia"
+				}
+			},
+			"items": [{
+				"name": "Something",
+				"quantity": 3,
+				"unit": "pcs.",
+				"price": 50,
+				"vat": 10
+			},
+			{
+				"name": "Something TWO",
+				"quantity": 2,
+				"unit": "pcs.",
+				"price": 40
+			}],
+			"dtcreated": "25.12.2022",
+			"dtpaid": "27.12.2022",
+			"dtdue": "1.1.2023",
+			"vat": 20,
+			"discount": 10,
+			"currency": "Eur",
+			"payment": "Stripe"
 		}
 	</script>
 
