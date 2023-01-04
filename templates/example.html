@@ -200,12 +200,12 @@
 			value.price = 0;
 
 			for(var i = 0; i < value.items.length; i++) {
-				value.items[i].withvat = value.items[i].price + ((value.items[i].price / 100) * (value.items[i].vat >= 0 ? value.items[i].vat : value.vat));
-				value.items[i].total = value.items[i].withvat * value.items[i].quantity;
-				value.vatbase = value.vatbase + (value.items[i].price * value.items[i].quantity);
-				value.price = value.price + value.items[i].total;
+				var item = value.items[i];
+				item.withvat = item.price + ((item.price / 100) * (item.vat >= 0 ? item.vat : value.vat));
+				item.total = item.withvat * item.quantity;
+				value.vatbase = value.vatbase + (item.price * item.quantity);
+				value.price = value.price + item.total;
 			}
-				
 
 			value.vatamount = value.price - value.vatbase;
 			
