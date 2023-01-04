@@ -1,2 +1,3 @@
-# templates
-Tangular templates
+# Templates
+
+- Renderer: https://templates.totaljs.com
