@@ -34,16 +34,21 @@
 						<div>
 							<b>{{ value.supplier.name }}</b><br>
 							<div>Company ID: {{ value.supplier.companyid }}</div>
-							<div>VAT number: {{ value.supplier.companyvat }}</div><br>
-							{{ value.supplier.address.street }}<br>
-							{{ value.supplier.address.ZIP }} {{ value.supplier.address.city }}<br>
-							{{ value.supplier.address.state }}<br><br>
+							<div>VAT number: {{ value.supplier.companyvat }}</div>
 
+							{{ if value.supplier.address }}
+							<br>
+							<div>{{ value.supplier.address | newline }}</div>
+							{{ fi }}
+
+							{{ if value.bank }}
+							<br>
 							<div style="border:1px solid black;padding:15px;margin-right:20px">
 								Bank: {{ value.bank.name }}<br>
 								IBAN / SWIFT: {{ value.bank.iban }} / {{ value.bank.swift }}<br>
 								Payment reference: {{ value.bank.vs }}
 							</div>
+							{{ fi }}
 						</div>
 					</div>
 				</td>
@@ -51,16 +56,18 @@
 					<div style="padding:15px 0 15px 20px">
 						<div style="margin:10px 0 5px;color:gray;font-size:10px">Customer:</div>
 						<b>{{ value.customer.name }}</b><br />
+
 						{{ if value.customer.companyid }}
 							<div>Company ID: {{ value.customer.companyid }}</div>
 						{{ fi }}
+
 						{{ if value.customer.companyvat }}
 							<div>VAT number: {{ value.customer.companyvat }}</div><br />
 						{{ fi }}
 						
-						<div>{{ value.customer.address.address }}<br>
-							{{ value.customer.address.zip }} {{ value.customer.address.city }}<br />{{ value.customer.address.state }}
-						</div>
+						{{ if value.customer.address }}
+						<div>{{ value.customer.address | newline }}</div>
+						{{ fi }}
 					</div>
 				</td>
 			</tr>
@@ -94,7 +101,7 @@
 			</td>
 		</table>
 		<br />
-		{{ if !value.vat }}Supply of goods is exempt. Supply of services - VAT reverse charge.<br />{{ fi }}
+		{{ if !value.vat }}<div>Supply of goods is exempt. Supply of services - VAT reverse charge.</div>{{ fi }}
 		<br />
 		<table class="items" cellpadding="0" cellspacing="0">
 			<thead>
@@ -217,6 +224,9 @@
 			return '';
 		};
 
+		Thelpers.newline = function(val) {
+			return val ? val.replace(/\n/g, '<br>') : val;
+		};
 
 	</script>
 
@@ -228,14 +238,9 @@
 			"url": "https://img.stackshare.io/service/6884/P5niXmXA_400x400.png",
 			"supplier": {
 				"name": "Parkio",
-				"companyid": 12345,
-				"companyvat": "SKsomething",
-				"address": {
-					"street": "Kapitulská 3",
-					"zip": 96681,
-					"city": "Banská Bystrica",
-					"state": "Slovakia"
-				}
+				"companyid": "12345678",
+				"companyvat": "SK1234567890",
+				"address": "Kapitulská 3,\n97401 Banská Bystrica,\nSlovakia"
 			},
 			"bank": {
 				"name": "Tatra Banka",
@@ -245,14 +250,9 @@
 			},
 			"customer": {
 				"name": "Total Avengers s.r.o.",
-				"companyid": 12345,
-				"companyvat": "SKelse",
-				"address": {
-					"address": "Kapitulská 3",
-					"zip": 96681,
-					"city": "Banská Bystrica",
-					"state": "Slovakia"
-				}
+				"companyid": "12345678",
+				"companyvat": "SK1234567890",
+				"address": "Kapitulská 3,\n97401 Banská Bystrica,\nSlovakia"
 			},
 			"items": [{
 				"name": "Something",
@@ -272,7 +272,7 @@
 			"dtdue": "1.1.2023",
 			"vat": 20,
 			"discount": 10,
-			"currency": "Eur",
+			"currency": "&euro;",
 			"payment": "Stripe"
 		}
 	</script>
